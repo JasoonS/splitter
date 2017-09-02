@@ -5,7 +5,9 @@ contract Splitter {
     bool public killed;
     bool public paused;
     mapping (address => uint) public balances;
-    mapping (bytes12 => Payees) public splitterGroups; 
+    mapping (bytes12 => Payees) public splitterGroups;
+
+    event LogWithdrawal(address indexed payee, uint amount);
 
     struct Payees {
         bool exists;
@@ -17,7 +19,7 @@ contract Splitter {
         require(msg.sender == owner);
         _;
     }
-    
+
     modifier isAlive() {
         require(!killed);
         _;
@@ -33,14 +35,14 @@ contract Splitter {
         killed = false;
         paused = false;
     }
-    
-    function split(address bob, address carol) 
+
+    function split(address bob, address carol)
         public
         payable
         isActive
     {
         uint splitAmount = msg.value/2;
-        
+
         if (msg.value%2 == 1) {
             balances[msg.sender] += 1;
         }
@@ -48,30 +50,33 @@ contract Splitter {
         balances[carol] += splitAmount;
     }
 
-    function split(bytes12 groupId) 
+    function split(bytes12 groupId)
         external
         payable
         isActive
     {
         split(splitterGroups[groupId].bob, splitterGroups[groupId].bob);
     }
-    
-    function createGroup(address bob, address carol, bytes12 groupId) 
+
+    function createGroup(address bob, address carol, bytes12 groupId)
         public
         isActive
     {
         require(!splitterGroups[groupId].exists);
-        
+
         splitterGroups[groupId] = Payees(true, bob, carol);
     }
 
     function withdrawl()
         returns(bool)
     {
+        uint toSend = balances[msg.sender];
+        balances[msg.sender] = 0;
         if (msg.sender.send(balances[msg.sender])) {
-            balances[msg.sender] = 0;
+            LogWithdrawal(msg.sender, toSend);
             return true;
         } else {
+            balances[msg.sender] = toSend;
             return false;
         }
     }

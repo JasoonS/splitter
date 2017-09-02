@@ -1,1 +1,1 @@
-remixd -S ~/Documents/program-p/unit4proj/contracts &
+remixd -S $(pwd)/contracts &
