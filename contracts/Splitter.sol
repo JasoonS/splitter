@@ -8,6 +8,11 @@ contract Splitter {
     mapping (bytes12 => Payees) public splitterGroups;
 
     event LogWithdrawal(address indexed payee, uint amount);
+    event LogCreateSplitterGroup(address indexed alice, address indexed bob, address indexed carol, bytes12 groupId);
+    event LogSplitToAddres(address indexed alice, address indexed bob, address indexed carol, uint totalAmount);
+    event LogKill(uint blockNumber, string reasonForKill);
+    event LogPause(uint blockNumber, string reasonForPause);
+    event LogResume(uint blockNumber);
 
     struct Payees {
         bool exists;
@@ -48,6 +53,8 @@ contract Splitter {
         }
         balances[bob] += splitAmount;
         balances[carol] += splitAmount;
+
+        LogSplitToAddres(msg.sender, bob, carol, msg.value);
     }
 
     function split(bytes12 groupId)
@@ -65,6 +72,8 @@ contract Splitter {
         require(!splitterGroups[groupId].exists);
 
         splitterGroups[groupId] = Payees(true, bob, carol);
+
+        LogCreateSplitterGroup(msg.sender, bob, carol, groupId);
     }
 
     function withdrawl()
@@ -81,21 +90,24 @@ contract Splitter {
         }
     }
 
-    function pause()
+    function pause(string reason)
         external
     {
+        LogPause(block.number, reason);
         paused = true;
     }
 
     function resume()
         external
     {
+        LogResume(block.number);
         paused = false;
     }
 
-    function kill()
+    function kill(string reason)
         external
     {
+        LogPause(block.number, reason);
         killed = true;
     }
 }
