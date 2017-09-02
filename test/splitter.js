@@ -66,5 +66,28 @@ contract('Splitter', accounts => {
           assert.equal(group[2], zeroAddress, 'Carol\'s address was set incorrectly in the Payees struct.')
         })
       })
+
+      it('should allow alice to split money on this new group', () => {
+        return instance.groupSplit(
+          testGroupId,
+          {from: alice, value: 51, gas: 3000000}
+        )
+        .then(() => {
+          return sequentialPromise([
+            () => instance.balances(alice),
+            () => instance.balances(bob),
+            () => instance.balances(carol)
+          ])
+        })
+        .then(balances => {
+          const aliceBalance = balances[0].toString(10)
+          const bobBalance = balances[1].toString(10)
+          const carolBalance = balances[2].toString(10)
+
+          assert.equal(aliceBalance, '1', 'Did not handle the remainder correctly. (ie division of odd number by 2)')
+          assert.equal(bobBalance, '25', 'Bob recieved the incorect amoun from the group split.')
+          assert.equal(carolBalance, '25', 'Carol recieved the incorect amoun from the group split.')
+        })
+      })
     })
 })

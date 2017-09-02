@@ -58,12 +58,12 @@ contract Splitter {
         LogSplitToAddres(msg.sender, bob, carol, msg.value);
     }
 
-    function split(bytes32 groupId)
+    function groupSplit(bytes32 groupId)
         external
         payable
         isActive
     {
-        split(splitterGroups[groupId].bob, splitterGroups[groupId].bob);
+        split(splitterGroups[groupId].bob, splitterGroups[groupId].carol);
     }
 
     function createGroup(address bob, address carol, bytes32 groupId)
