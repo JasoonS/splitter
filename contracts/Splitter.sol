@@ -1,14 +1,14 @@
-pragma solidity ^0.4.16;
+pragma solidity ^0.4.15;
 
 contract Splitter {
     address public owner;
     bool public killed;
     bool public paused;
     mapping (address => uint) public balances;
-    mapping (bytes12 => Payees) public splitterGroups;
+    mapping (bytes32 => Payees) public splitterGroups;
 
     event LogWithdrawal(address indexed payee, uint amount);
-    event LogCreateSplitterGroup(address indexed alice, address indexed bob, address indexed carol, bytes12 groupId);
+    event LogCreateSplitterGroup(address indexed alice, address indexed bob, address indexed carol, bytes32 groupId);
     event LogSplitToAddres(address indexed alice, address indexed bob, address indexed carol, uint totalAmount);
     event LogKill(uint blockNumber, string reasonForKill);
     event LogPause(uint blockNumber, string reasonForPause);
@@ -57,7 +57,7 @@ contract Splitter {
         LogSplitToAddres(msg.sender, bob, carol, msg.value);
     }
 
-    function split(bytes12 groupId)
+    function split(bytes32 groupId)
         external
         payable
         isActive
@@ -65,7 +65,7 @@ contract Splitter {
         split(splitterGroups[groupId].bob, splitterGroups[groupId].bob);
     }
 
-    function createGroup(address bob, address carol, bytes12 groupId)
+    function createGroup(address bob, address carol, bytes32 groupId)
         public
         isActive
     {
