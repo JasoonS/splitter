@@ -25,6 +25,7 @@ contract Splitter {
         _;
     }
 
+
     modifier isAlive() {
         require(!killed);
         _;
