@@ -1,5 +1,6 @@
 const Splitter = artifacts.require('./Splitter.sol')
-const sequentialPromise = require('../util/sequentialPromise.js')
+const sequentialPromise = require('../test-util/sequentialPromise.js')
+const BigNumber = require('bignumber.js')
 
 contract('Splitter', accounts => {
 
@@ -90,4 +91,59 @@ contract('Splitter', accounts => {
       })
     })
   })
+  describe('withdrawl functionality', function() {
+
+    beforeEach(() => {
+
+      return instance.split(
+        bob,
+        carol,
+        {from: alice, value: 51, gas: 3000000}
+      )
+      .then(() =>
+        instance.balances(bob)
+      )
+      .then (bobBalance => {
+        bobBalanceInContract = bobBalance
+      })
+      .then(() =>
+        // TODO: fix this, there is potential for a race condition here.
+        web3.eth.getBalance(bob)
+      )
+      .then(bobsBalance => {
+        bobBalanceBefore = bobsBalance
+      })
+    })
+
+    it('should allow bob to withdraw the funds that are due to him.', () => {
+      let bobBalanceAfter
+      let transactionGas
+
+      return instance.withdrawl(
+        {
+          from: bob,
+          gasPrice: 100
+        }
+      )
+      .then(tx => {
+        transactionGas = tx.receipt.gasUsed
+        return web3.eth.getBalance(bob)
+      })
+      .then(bobBalanceAfter => {
+        const transactionGasCost = new BigNumber(100*transactionGas)
+        const totalBefore = bobBalanceBefore//.plus(bobBalanceInContract)
+        const totalAfter = bobBalanceAfter.plus(transactionGasCost)
+        assert.isTrue(totalBefore.equals(totalAfter), 'the total balance in the system before and after doesn\'t match up')
+      })
+      .then(() =>
+        instance.balances(bob)
+      )
+      .then (bobContractBalance => {
+        assert.equal(bobContractBalance.toString(), '0', 'the withdrawl function should have taken the entire ballance out of the smart contract, but some was left remaining.')
+      })
+    })
+  })
 })
+
+let bigIntToInt = num =>
+  parseInt(num.toString(10))
