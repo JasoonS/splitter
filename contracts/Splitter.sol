@@ -37,6 +37,11 @@ contract Splitter {
         _;
     }
 
+    modifier groupExists(bytes32 groupId) {
+        require(splitterGroups[groupId].exists);
+        _;
+    }
+
     function Splitter() {
         killed = false;
         paused = false;
@@ -62,6 +67,7 @@ contract Splitter {
         external
         payable
         isActive
+        groupExists(groupId)
     {
         split(splitterGroups[groupId].bob, splitterGroups[groupId].carol);
     }
@@ -70,6 +76,7 @@ contract Splitter {
         public
         isActive
     {
+        // do not allow overwriting existing groups
         require(!splitterGroups[groupId].exists);
 
         splitterGroups[groupId] = Payees(true, bob, carol);
@@ -80,6 +87,7 @@ contract Splitter {
     function withdrawl()
         returns(bool)
     {
+        // perform optimistic accounting to prevent chances of re-entry attack.
         uint toSend = balances[msg.sender];
         balances[msg.sender] = 0;
         if (msg.sender.send(balances[msg.sender])) {
