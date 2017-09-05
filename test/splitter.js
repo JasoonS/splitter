@@ -131,7 +131,7 @@ contract('Splitter', accounts => {
       })
       .then(bobBalanceAfter => {
         const transactionGasCost = new BigNumber(100*transactionGas)
-        const totalBefore = bobBalanceBefore//.plus(bobBalanceInContract)
+        const totalBefore = bobBalanceBefore.plus(bobBalanceInContract)
         const totalAfter = bobBalanceAfter.plus(transactionGasCost)
         assert.isTrue(totalBefore.equals(totalAfter), 'the total balance in the system before and after doesn\'t match up')
       })

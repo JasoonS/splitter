@@ -90,7 +90,7 @@ contract Splitter {
         // perform optimistic accounting to prevent chances of re-entry attack.
         uint toSend = balances[msg.sender];
         balances[msg.sender] = 0;
-        if (msg.sender.send(balances[msg.sender])) {
+        if (msg.sender.send(toSend)) {
             LogWithdrawal(msg.sender, toSend);
             return true;
         } else {
